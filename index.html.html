@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>顎運動セルフチェック 撮影用</title>
+<style>
+  :root{--bg:#eef3f6;--ink:#54829a;--sub:#6e787e;--btn:#6a8795;--line:#f0a046;--ring:#ffffffcc}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);font-family:"Hiragino Sans","Noto Sans JP",sans-serif;overflow:hidden}
+  .app{display:flex;flex-direction:column;height:100dvh}
+  header{padding:18px 20px 14px;display:flex;justify-content:space-between;align-items:center}
+  h1{font-size:22px;color:var(--ink);font-weight:700;letter-spacing:.02em}
+  .sub{font-size:15px;color:var(--sub);margin-top:4px}
+  .guide{border:2px solid #b4c9d2;background:#dbe6ea;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:15px}
+  .stage{position:relative;flex:1;overflow:hidden;background:#333}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .shade{position:absolute;inset:0;pointer-events:none}
+  .banner{position:absolute;top:12px;left:12px;right:12px;background:#f3f2f0;border-radius:30px;padding:10px 14px;text-align:center;font-size:15px;color:#46525a;box-shadow:0 1px 4px #0002}
+  .side{position:absolute;top:58%;background:#ebebe9e6;border-radius:8px;padding:6px 12px;font-size:22px;font-weight:700;color:#97a0a5}
+  .side.l{left:10px}.side.r{right:10px}
+  .bottom{background:#7f8a8f;padding:16px 20px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center}
+  button{border:0;border-radius:40px;font-size:17px;font-family:inherit;color:#26333a;cursor:pointer}
+  #start{background:var(--btn);color:#e8f0f3;padding:14px 30px;flex:1;max-width:360px}
+  #toggle{background:#dbe6ea;padding:14px 16px;font-size:14px}
+  .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;text-align:center;padding:24px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><h1>顎運動セルフチェック</h1><div class="sub">梨本監修</div></div>
+    <div class="guide">操作ガイド</div>
+  </header>
+  <div class="stage" id="stage">
+    <video id="v" playsinline muted autoplay></video>
+    <svg class="shade" id="shade" preserveAspectRatio="none"></svg>
+    <div class="banner">はじめてのチェックです。まずは下のボタンから</div>
+    <div class="side l">左手側</div><div class="side r">右手側</div>
+    <div class="msg" id="msg">下の「カメラを始める」を押してください。<br>映像はこのスマホの中だけで表示され、<br>保存も送信もされません。</div>
+  </div>
+  <div class="bottom">
+    <button id="start">▶ カメラを始める</button>
+    <button id="toggle">中心線 ON</button>
+  </div>
+</div>
+<script>
+const v=document.getElementById('v'),svg=document.getElementById('shade'),stage=document.getElementById('stage'),msg=document.getElementById('msg');
+let showLine=true;
+function draw(){
+  const w=stage.clientWidth,h=stage.clientHeight;
+  const cx=w/2,cy=h*0.47,rx=Math.min(w*0.36,h*0.27),ry=rx*1.12;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  svg.innerHTML=`
+    <defs><mask id="m"><rect width="${w}" height="${h}" fill="#fff"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#000"/></mask></defs>
+    <rect width="${w}" height="${h}" fill="#000" opacity=".38" mask="url(#m)"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#ffffffcc" stroke-width="3"/>
+    ${showLine?`<line x1="${cx}" y1="${cy-ry*0.15}" x2="${cx}" y2="${h}" stroke="#f0a046" stroke-width="3" stroke-dasharray="10 8"/>`:''}`;
+}
+addEventListener('resize',draw);draw();
+document.getElementById('toggle').onclick=e=>{showLine=!showLine;e.target.textContent='中心線 '+(showLine?'ON':'OFF');draw();};
+document.getElementById('start').onclick=async e=>{
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:1920}},audio:false});
+    v.srcObject=s;msg.style.display='none';e.target.textContent='▶ セルフチェックを始める';
+  }catch(err){
+    msg.innerHTML='カメラを使えませんでした。<br>ブラウザの設定でカメラを許可してから、<br>もう一度押してください。';
+  }
+};
+</script>
+</body>
+</html>
